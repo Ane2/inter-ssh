@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>InterSSH</title>
+
+    <link rel="stylesheet" href="fonts.css">
+    <link rel="stylesheet" href="main.css">
+
+    <!-- TODO: Import fonts locally! -->
+<link href="https://fonts.googleapis.com/css?family=Ubuntu+Condensed|Ubuntu+Mono|Ubuntu:300,400,500" rel="stylesheet">
+
+    <script src="fonts/fontawesome-all.min.js"></script>
+
+    <script>
+    class Console{
+      constructor(){
+        this.output = document.getElementById('output')
+        this.lines = new Array(1000)
+        this.lines_length = 0
+
+        this.render_array = new Array(128)
+        this.last_index = 0
+        this.render_index = 0
+        this.render_limit
+        this.render_count
+
+        this.scroll = document.getElementsByClassName('bar')[0]
+        this.scroll_step = 1
+        this.scroll_position = 0
+
+        console.log(this.scroll)
+
+        for(let i=0; i<this.render_array.length; i++){
+          this.render_array[i] = document.createElement('p')
+          this.output.append(this.render_array[i])
+        }
+
+        this.line_height = this.render_array[0].offsetHeight
+      }
+
+      print(string){
+        if(this.lines_length < this.lines.length){
+          this.lines_length++
+        }
+
+        console.log(this.lines_length)
+
+        this.lines[this.last_index++] = string
+
+        if(this.last_index > this.lines.length - 1){
+          this.last_index = 0
+        }
+      }
+
+      getRenderIndex(){
+        let result = this.render_index - this.render_count
+        if(this.lines.length === this.lines_length && result < 0){
+          result = this.lines.length + result
+        }else if(result < 0){
+          result = 0
+        }
+
+        return 0
+      }
+
+      render(){
+        let render_from = this.render_array.length - this.render_count
+        let line_from = this.getRenderIndex()
+        for(
+          let i=0;
+          i<this.render_array.length;
+          i++
+        )
+        {
+          this.render_array[render_from + i].innerHTML = this.lines[line_from + i]
+        }
+      }
+
+      resize(){
+        this.render_count = Math.ceil(this.output.offsetHeight / this.line_height)
+        this.output.scrollTop = this.output.scrollHeight
+        this.render()
+      }
+    }
+
+    window.onload = () => {
+      let printer = new Console
+
+      for(let i=0; i<1200; i++){
+        printer.print('line: ' + i)
+      }
+
+      window.addEventListener('mousewheel', (e) => {
+        let scroll_lines = printer.lines.length / 100 * printer.scroll_step
+        let direction = (e.deltaY > 0) ? 'down' : 'up'
+
+        if(direction === 'up'){
+          printer.scroll_position -= printer.scroll_step
+        }else{
+          printer.scroll_position += printer.scroll_step
+        }
+
+        if(printer.scroll_position > 100){
+          printer.scroll_position = 100
+        }else if(printer.scroll_position < 0){
+          printer.scroll_position = 0
+        }
+
+        printer.scroll.style.top = printer.scroll_position + '%'
+
+        printer.render_index += (direction === 'up') ? -scroll_lines : scroll_lines
+
+        let last_item = printer.last_index - printer.render_count
+
+        console.log('last item:', last_item)
+        console.log('render index:', printer.render_index)
+        console.log('render count:', printer.render_count)
+
+        if(printer.render_index > last_item){
+          printer.render_index = printer.last_index - printer.render_count
+        }
+
+        // if(printer.render_index > printer.last_index - printer.render_count){
+        //   printer.render_index = printer.last_index
+        // }
+        //
+
+        // printer.render_index =
+
+        console.log(printer.render_index)
+
+        printer.render()
+      })
+
+      printer.resize()
+      printer.render()
+
+      window.onresize = (e) => {
+        printer.resize()
+        console.log('test')
+      }
+    }
+
+    </script>
+  </head>
+  <body>
+    <div class="grid main">
+      <div class="screen console">
+        <div class="output">
+          <div class="scroll"><span class="bar"></span></div>
+
+          <div id="output"></div>
+        </div>
+
+        <span class="indicator">
+          <i class="fal fa-angle-right"></i>
+        </span>
+        <input type="text" autofocus>
+      </div>
+    </div>
+  </body>
+</html>
